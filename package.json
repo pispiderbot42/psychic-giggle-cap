@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@sap/cds": "^7",
-    "express": "^4"
+    "@sap/xssec": "^3",
+    "express": "^4",
+    "better-sqlite3": "^9"
   },
   "devDependencies": {
     "@sap/cds-dk": "^7"
@@ -22,7 +24,13 @@
   "cds": {
     "requires": {
       "db": {
-        "kind": "sql"
+        "kind": "sqlite",
+        "credentials": {
+          "database": ":memory:"
+        }
+      },
+      "auth": {
+        "kind": "dummy"
       }
     }
   }
