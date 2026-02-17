@@ -1,0 +1,12 @@
+---
+applications:
+  - name: psychic-giggle-cap
+    path: .
+    memory: 256M
+    disk_quota: 512M
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    random-route: true
+    env:
+      NODE_ENV: production

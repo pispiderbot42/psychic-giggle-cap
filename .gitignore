@@ -1,0 +1,5 @@
+node_modules/
+gen/
+*.mtar
+.cds-services.json
+default-*.json

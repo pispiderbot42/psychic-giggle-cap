@@ -1,0 +1,26 @@
+{
+  "name": "psychic-giggle-cap",
+  "version": "1.0.0",
+  "description": "CAP Hello World on SAP BTP",
+  "repository": "https://github.com/pispiderbot42/psychic-giggle-cap.git",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap/cds": "^7",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^7"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "build": "cds build --production"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sql"
+      }
+    }
+  }
+}
