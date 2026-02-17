@@ -1,10 +1,14 @@
 const cds = require('@sap/cds');
 const express = require('express');
+const path = require('path');
 
 const PORT = process.env.PORT || 4004;
 
 async function start() {
   const app = express();
+  
+  // Serve static files from app folder
+  app.use(express.static(path.join(__dirname, 'app')));
   
   // Bootstrap CDS
   await cds.serve('all').in(app);
