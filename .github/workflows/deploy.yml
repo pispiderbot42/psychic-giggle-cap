@@ -31,4 +31,4 @@ jobs:
           cf login -a "${{ secrets.CF_API }}" -u "${{ secrets.CF_USERNAME }}" -p "${{ secrets.CF_PASSWORD }}" -o "${{ secrets.CF_ORG }}" -s "${{ secrets.CF_SPACE }}"
 
       - name: Deploy to BTP
-        run: cf push
+        run: cf push || (cf logs psychic-giggle-cap --recent && exit 1)
