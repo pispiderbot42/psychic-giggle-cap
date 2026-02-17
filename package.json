@@ -5,6 +5,9 @@
   "repository": "https://github.com/pispiderbot42/psychic-giggle-cap.git",
   "license": "UNLICENSED",
   "private": true,
+  "engines": {
+    "node": "^20"
+  },
   "dependencies": {
     "@sap/cds": "^7",
     "express": "^4"
@@ -13,7 +16,7 @@
     "@sap/cds-dk": "^7"
   },
   "scripts": {
-    "start": "cds-serve",
+    "start": "cds serve",
     "build": "cds build --production"
   },
   "cds": {
