@@ -143,6 +143,112 @@
       border-color: rgba(255, 255, 255, 0.4);
     }
     
+    /* Speed Test Styles */
+    .speedtest {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    .speedtest h2 {
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .speedtest-btn {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #00d9ff, #00ff88);
+      border: none;
+      border-radius: 50px;
+      color: #1a1a2e;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 1.5rem;
+    }
+    
+    .speedtest-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+    }
+    
+    .speedtest-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .results {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .result-card {
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .result-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .result-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #00ff88;
+    }
+    
+    .result-value.download { color: #00d9ff; }
+    .result-value.upload { color: #ff6b6b; }
+    
+    .result-unit {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-left: 4px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 1rem;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .progress-bar.active {
+      display: block;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    
+    .test-status {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 0.75rem;
+      min-height: 1.2em;
+    }
+    
     .particles {
       position: fixed;
       top: 0;
@@ -224,6 +330,105 @@
       <a href="https://github.com/pispiderbot42/psychic-giggle-cap" target="_blank">📦 GitHub</a>
       <a href="https://openclaw.ai" target="_blank">🦞 OpenClaw</a>
     </div>
+    
+    <div class="speedtest">
+      <h2>⚡ Speed Test</h2>
+      <button class="speedtest-btn" id="startTest" onclick="runSpeedTest()">Start Test</button>
+      
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="test-status" id="testStatus"></div>
+      
+      <div class="results">
+        <div class="result-card">
+          <div class="result-label">Ping</div>
+          <div class="result-value" id="pingResult">—<span class="result-unit">ms</span></div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Download</div>
+          <div class="result-value download" id="downloadResult">—<span class="result-unit">Mbps</span></div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Upload</div>
+          <div class="result-value upload" id="uploadResult">—<span class="result-unit">Mbps</span></div>
+        </div>
+      </div>
+    </div>
   </div>
+  
+  <script>
+    async function runSpeedTest() {
+      const btn = document.getElementById('startTest');
+      const progressBar = document.getElementById('progressBar');
+      const progressFill = document.getElementById('progressFill');
+      const status = document.getElementById('testStatus');
+      
+      btn.disabled = true;
+      btn.textContent = 'Testing...';
+      progressBar.classList.add('active');
+      
+      // Reset results
+      document.getElementById('pingResult').innerHTML = '—<span class="result-unit">ms</span>';
+      document.getElementById('downloadResult').innerHTML = '—<span class="result-unit">Mbps</span>';
+      document.getElementById('uploadResult').innerHTML = '—<span class="result-unit">Mbps</span>';
+      
+      try {
+        // 1. Ping Test (multiple samples)
+        status.textContent = 'Testing latency...';
+        progressFill.style.width = '10%';
+        
+        const pings = [];
+        for (let i = 0; i < 5; i++) {
+          const start = performance.now();
+          await fetch('/speedtest/ping?t=' + Date.now());
+          const end = performance.now();
+          pings.push(end - start);
+        }
+        const avgPing = Math.round(pings.reduce((a, b) => a + b) / pings.length);
+        document.getElementById('pingResult').innerHTML = avgPing + '<span class="result-unit">ms</span>';
+        progressFill.style.width = '33%';
+        
+        // 2. Download Test
+        status.textContent = 'Testing download speed...';
+        const downloadSize = 2 * 1024 * 1024; // 2MB
+        const dlStart = performance.now();
+        const dlResponse = await fetch('/speedtest/download?size=' + downloadSize + '&t=' + Date.now());
+        await dlResponse.arrayBuffer();
+        const dlEnd = performance.now();
+        const dlTime = (dlEnd - dlStart) / 1000; // seconds
+        const dlSpeed = ((downloadSize * 8) / dlTime / 1000000).toFixed(1); // Mbps
+        document.getElementById('downloadResult').innerHTML = dlSpeed + '<span class="result-unit">Mbps</span>';
+        progressFill.style.width = '66%';
+        
+        // 3. Upload Test
+        status.textContent = 'Testing upload speed...';
+        const uploadSize = 1 * 1024 * 1024; // 1MB
+        const uploadData = new Uint8Array(uploadSize);
+        const ulStart = performance.now();
+        await fetch('/speedtest/upload', {
+          method: 'POST',
+          body: uploadData,
+          headers: { 'Content-Type': 'application/octet-stream' }
+        });
+        const ulEnd = performance.now();
+        const ulTime = (ulEnd - ulStart) / 1000;
+        const ulSpeed = ((uploadSize * 8) / ulTime / 1000000).toFixed(1);
+        document.getElementById('uploadResult').innerHTML = ulSpeed + '<span class="result-unit">Mbps</span>';
+        progressFill.style.width = '100%';
+        
+        status.textContent = 'Test complete!';
+        
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+      }
+      
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Start Test';
+        progressBar.classList.remove('active');
+      }, 1500);
+    }
+  </script>
 </body>
 </html>
