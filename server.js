@@ -10,6 +10,22 @@ async function start() {
   // Serve static files from app folder
   app.use(express.static(path.join(__dirname, 'app')));
   
+  // RSS Feed proxy (to avoid CORS issues)
+  app.get('/rss/fetch', async (req, res) => {
+    const feedUrl = req.query.url;
+    if (!feedUrl) {
+      return res.status(400).json({ error: 'Missing url parameter' });
+    }
+    try {
+      const response = await fetch(feedUrl);
+      const xml = await response.text();
+      res.set('Content-Type', 'application/xml');
+      res.send(xml);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
   // Speed test endpoints
   app.get('/speedtest/ping', (req, res) => {
     res.json({ timestamp: Date.now() });

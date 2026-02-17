@@ -1,0 +1,56 @@
+{
+  "_version": "1.32.0",
+  "sap.app": {
+    "id": "rssreader",
+    "type": "application",
+    "title": "RSS Feed Reader",
+    "description": "A simple RSS feed reader built with SAP UI5",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "rssreader.view.Main",
+      "type": "XML",
+      "id": "mainView"
+    },
+    "dependencies": {
+      "minUI5Version": "1.108.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.layout": {},
+        "sap.ui.core": {}
+      }
+    },
+    "models": {
+      "feeds": {
+        "type": "sap.ui.model.json.JSONModel",
+        "settings": {
+          "data": {
+            "items": []
+          }
+        }
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "rssreader.view",
+        "controlId": "app",
+        "controlAggregation": "pages"
+      },
+      "routes": [],
+      "targets": {}
+    }
+  }
+}

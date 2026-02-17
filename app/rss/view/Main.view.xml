@@ -1,0 +1,86 @@
+<mvc:View
+  controllerName="rssreader.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:l="sap.ui.layout"
+  height="100%">
+  
+  <App id="app">
+    <Page 
+      title="📰 RSS Feed Reader"
+      showNavButton="true"
+      navButtonPress="onNavBack"
+      backgroundDesign="Solid">
+      
+      <customHeader>
+        <Bar>
+          <contentLeft>
+            <Button icon="sap-icon://home" press="onNavBack" tooltip="Back to Home"/>
+          </contentLeft>
+          <contentMiddle>
+            <Title text="RSS Feed Reader" level="H4"/>
+          </contentMiddle>
+          <contentRight>
+            <Button icon="sap-icon://refresh" press="onRefresh" tooltip="Refresh Feed"/>
+          </contentRight>
+        </Bar>
+      </customHeader>
+      
+      <content>
+        <l:Splitter height="100%">
+          <l:contentAreas>
+            <!-- Feed List Panel -->
+            <Panel 
+              headerText="Feeds" 
+              width="280px"
+              class="sapUiSmallMargin">
+              <List
+                id="feedList"
+                items="{app>/feeds}"
+                mode="SingleSelectMaster"
+                selectionChange="onFeedSelect">
+                <StandardListItem
+                  title="{app>name}"
+                  description="{app>url}"
+                  icon="sap-icon://feed"
+                  type="Active"/>
+              </List>
+              <Toolbar>
+                <ToolbarSpacer/>
+                <Button text="Add Feed" icon="sap-icon://add" press="onAddFeed"/>
+              </Toolbar>
+            </Panel>
+            
+            <!-- Articles Panel -->
+            <Panel 
+              headerText="Articles"
+              class="sapUiSmallMargin">
+              <List
+                id="articleList"
+                items="{app>/items}"
+                growing="true"
+                growingThreshold="20"
+                noDataText="Select a feed to load articles">
+                <CustomListItem type="Active" press="onArticlePress">
+                  <VBox class="sapUiSmallMargin">
+                    <Title text="{app>title}" wrapping="true" level="H5"/>
+                    <Label text="{app>pubDate}" class="sapUiTinyMarginTop"/>
+                    <Text text="{app>description}" maxLines="3" class="sapUiTinyMarginTop"/>
+                  </VBox>
+                </CustomListItem>
+              </List>
+              <footer>
+                <Bar>
+                  <contentMiddle>
+                    <BusyIndicator visible="{app>/loading}" size="Small"/>
+                  </contentMiddle>
+                </Bar>
+              </footer>
+            </Panel>
+          </l:contentAreas>
+        </l:Splitter>
+      </content>
+      
+    </Page>
+  </App>
+</mvc:View>
