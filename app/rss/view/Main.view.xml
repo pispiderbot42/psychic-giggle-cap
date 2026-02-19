@@ -65,16 +65,16 @@
               class="sapUiSmallMargin">
               <List
                 id="articleList"
-                items="{state>/items}"
+                items="{app>/items}"
                 growing="true"
                 growingThreshold="20"
-                busy="{state>/loading}"
+                busy="{app>/loading}"
                 noDataText="Select a feed to load articles">
                 <CustomListItem type="Active" press="onArticlePress">
                   <VBox class="sapUiSmallMargin">
-                    <Title text="{state>title}" wrapping="true" level="H5"/>
-                    <Label text="{state>pubDate}" class="sapUiTinyMarginTop"/>
-                    <Text text="{state>description}" maxLines="3" class="sapUiTinyMarginTop"/>
+                    <Title text="{app>title}" wrapping="true" level="H5"/>
+                    <Label text="{app>pubDate}" class="sapUiTinyMarginTop"/>
+                    <Text text="{app>description}" maxLines="3" class="sapUiTinyMarginTop"/>
                   </VBox>
                 </CustomListItem>
               </List>
