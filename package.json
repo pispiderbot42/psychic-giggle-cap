@@ -18,7 +18,7 @@
     "@sap/cds-dk": "^7"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "cds-serve",
     "build": "cds build --production"
   },
   "cds": {

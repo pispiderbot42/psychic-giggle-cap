@@ -4,9 +4,8 @@ const path = require('path');
 
 const PORT = process.env.PORT || 4004;
 
-async function start() {
-  const app = express();
-  
+// Custom express middleware before CDS bootstrap
+cds.on('bootstrap', (app) => {
   // Serve static files from app folder
   app.use(express.static(path.join(__dirname, 'app')));
   
@@ -31,45 +30,22 @@ async function start() {
     res.json({ timestamp: Date.now() });
   });
   
-  // Download test - returns ~1MB of data
   app.get('/speedtest/download', (req, res) => {
-    const size = parseInt(req.query.size) || 1024 * 1024; // 1MB default
-    const chunk = Buffer.alloc(Math.min(size, 5 * 1024 * 1024), 'x'); // max 5MB
+    const size = parseInt(req.query.size) || 1024 * 1024;
+    const chunk = Buffer.alloc(Math.min(size, 5 * 1024 * 1024), 'x');
     res.set('Content-Type', 'application/octet-stream');
     res.set('Content-Length', chunk.length);
     res.set('Cache-Control', 'no-store');
     res.send(chunk);
   });
   
-  // Upload test - accepts data and returns timing
   app.post('/speedtest/upload', express.raw({ limit: '10mb', type: '*/*' }), (req, res) => {
     res.json({ 
       received: req.body ? req.body.length : 0,
       timestamp: Date.now()
     });
   });
-  
-  // Connect to database and deploy schema
-  try {
-    const db = await cds.connect.to('db');
-    console.log('Database connected:', db.name);
-    
-    // Deploy schema and initial data
-    await cds.deploy('./db').to(db);
-    console.log('Database schema deployed');
-  } catch (err) {
-    console.error('Database setup error:', err.message);
-  }
-  
-  // Bootstrap CDS services
-  await cds.serve('all').in(app);
-  
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-start().catch(err => {
-  console.error('Failed to start:', err);
-  process.exit(1);
 });
+
+// Start CDS server (handles DB connection automatically)
+module.exports = cds.server;
