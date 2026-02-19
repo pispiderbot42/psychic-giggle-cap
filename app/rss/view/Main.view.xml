@@ -32,22 +32,30 @@
             <!-- Feed List Panel -->
             <Panel 
               headerText="Feeds" 
-              width="280px"
+              width="300px"
               class="sapUiSmallMargin">
               <List
                 id="feedList"
                 items="{app>/feeds}"
                 mode="SingleSelectMaster"
                 selectionChange="onFeedSelect">
-                <StandardListItem
-                  title="{app>name}"
-                  description="{app>url}"
-                  icon="sap-icon://feed"
-                  type="Active"/>
+                <CustomListItem type="Active">
+                  <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                    <VBox class="sapUiTinyMarginBegin">
+                      <Text text="{app>name}" class="sapMText sapUiTinyMarginBottom"/>
+                      <Label text="{app>url}" wrapping="true"/>
+                    </VBox>
+                    <Button 
+                      icon="sap-icon://delete" 
+                      type="Transparent" 
+                      press="onDeleteFeed"
+                      tooltip="Delete Feed"/>
+                  </HBox>
+                </CustomListItem>
               </List>
               <Toolbar>
                 <ToolbarSpacer/>
-                <Button text="Add Feed" icon="sap-icon://add" press="onAddFeed"/>
+                <Button text="Add Feed" icon="sap-icon://add" press="onAddFeed" type="Emphasized"/>
               </Toolbar>
             </Panel>
             
@@ -57,16 +65,16 @@
               class="sapUiSmallMargin">
               <List
                 id="articleList"
-                items="{app>/items}"
+                items="{state>/items}"
                 growing="true"
                 growingThreshold="20"
-                busy="{app>/loading}"
+                busy="{state>/loading}"
                 noDataText="Select a feed to load articles">
                 <CustomListItem type="Active" press="onArticlePress">
                   <VBox class="sapUiSmallMargin">
-                    <Title text="{app>title}" wrapping="true" level="H5"/>
-                    <Label text="{app>pubDate}" class="sapUiTinyMarginTop"/>
-                    <Text text="{app>description}" maxLines="3" class="sapUiTinyMarginTop"/>
+                    <Title text="{state>title}" wrapping="true" level="H5"/>
+                    <Label text="{state>pubDate}" class="sapUiTinyMarginTop"/>
+                    <Text text="{state>description}" maxLines="3" class="sapUiTinyMarginTop"/>
                   </VBox>
                 </CustomListItem>
               </List>

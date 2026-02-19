@@ -3,3 +3,4 @@ gen/
 *.mtar
 .cds-services.json
 default-*.json
+db.sqlite

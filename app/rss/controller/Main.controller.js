@@ -2,22 +2,52 @@ sap.ui.define([
   "sap/ui/core/mvc/Controller",
   "sap/m/MessageBox",
   "sap/m/MessageToast",
-  "sap/ui/model/json/JSONModel"
+  "sap/ui/model/json/JSONModel",
+  "sap/ui/model/odata/v4/ODataModel"
 ], function(Controller, MessageBox, MessageToast, JSONModel) {
   "use strict";
   
   return Controller.extend("rssreader.controller.Main", {
     
     onInit: function() {
-      // Auto-select first feed on load
+      // Local state model
+      var oStateModel = new JSONModel({
+        items: [],
+        selectedFeed: null,
+        loading: false
+      });
+      this.getView().setModel(oStateModel, "state");
+      
+      // Load feeds from backend
+      this._loadFeeds();
+    },
+    
+    _loadFeeds: function() {
       var that = this;
-      setTimeout(function() {
-        var oList = that.byId("feedList");
-        if (oList && oList.getItems().length > 0) {
-          oList.setSelectedItem(oList.getItems()[0]);
-          that._loadFeed(that.getView().getModel("app").getProperty("/feeds/0/url"));
-        }
-      }, 500);
+      
+      fetch("/api/RssFeeds")
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          var oModel = that.getView().getModel("app");
+          oModel.setProperty("/feeds", data.value || []);
+          
+          // Auto-select first feed
+          setTimeout(function() {
+            var oList = that.byId("feedList");
+            if (oList && oList.getItems().length > 0) {
+              oList.setSelectedItem(oList.getItems()[0]);
+              var sUrl = data.value[0]?.url;
+              if (sUrl) {
+                that._loadFeed(sUrl);
+              }
+            }
+          }, 300);
+        })
+        .catch(function(err) {
+          console.error("Failed to load feeds:", err);
+        });
     },
     
     onNavBack: function() {
@@ -31,8 +61,8 @@ sap.ui.define([
     },
     
     onRefresh: function() {
-      var oModel = this.getView().getModel("app");
-      var sUrl = oModel.getProperty("/selectedFeed");
+      var oStateModel = this.getView().getModel("state");
+      var sUrl = oStateModel.getProperty("/selectedFeed");
       if (sUrl) {
         this._loadFeed(sUrl);
         MessageToast.show("Refreshing feed...");
@@ -43,9 +73,7 @@ sap.ui.define([
     
     onAddFeed: function() {
       var that = this;
-      var oModel = this.getView().getModel("app");
       
-      // Simple dialog for adding a feed
       if (!this._oAddDialog) {
         this._oAddDialog = new sap.m.Dialog({
           title: "Add RSS Feed",
@@ -55,7 +83,7 @@ sap.ui.define([
               items: [
                 new sap.m.Label({ text: "Feed Name", labelFor: "feedName" }),
                 new sap.m.Input({ id: "feedName", placeholder: "e.g., My Blog" }),
-                new sap.m.Label({ text: "Feed URL", labelFor: "feedUrl", class: "sapUiSmallMarginTop" }),
+                new sap.m.Label({ text: "Feed URL", labelFor: "feedUrl" }).addStyleClass("sapUiSmallMarginTop"),
                 new sap.m.Input({ id: "feedUrl", placeholder: "https://example.com/feed.xml", type: "Url" })
               ]
             }).addStyleClass("sapUiSmallMargin")
@@ -64,14 +92,11 @@ sap.ui.define([
             text: "Add",
             type: "Emphasized",
             press: function() {
-              var sName = sap.ui.getCore().byId("feedName").getValue();
-              var sUrl = sap.ui.getCore().byId("feedUrl").getValue();
+              var sName = sap.ui.getCore().byId("feedName").getValue().trim();
+              var sUrl = sap.ui.getCore().byId("feedUrl").getValue().trim();
               
               if (sName && sUrl) {
-                var aFeeds = oModel.getProperty("/feeds");
-                aFeeds.push({ name: sName, url: sUrl });
-                oModel.setProperty("/feeds", aFeeds);
-                MessageToast.show("Feed added!");
+                that._createFeed(sName, sUrl);
                 that._oAddDialog.close();
                 sap.ui.getCore().byId("feedName").setValue("");
                 sap.ui.getCore().byId("feedUrl").setValue("");
@@ -91,8 +116,70 @@ sap.ui.define([
       this._oAddDialog.open();
     },
     
+    _createFeed: function(sName, sUrl) {
+      var that = this;
+      
+      fetch("/api/RssFeeds", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: sName,
+          url: sUrl
+        })
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error("Failed to create feed");
+        return response.json();
+      })
+      .then(function() {
+        MessageToast.show("Feed added!");
+        that._loadFeeds();
+      })
+      .catch(function(err) {
+        MessageBox.error("Failed to add feed: " + err.message);
+      });
+    },
+    
+    onDeleteFeed: function(oEvent) {
+      var that = this;
+      var oItem = oEvent.getSource().getParent();
+      var oContext = oItem.getBindingContext("app");
+      var sId = oContext.getProperty("ID");
+      var sName = oContext.getProperty("name");
+      
+      MessageBox.confirm("Delete feed '" + sName + "'?", {
+        title: "Confirm Delete",
+        onClose: function(sAction) {
+          if (sAction === MessageBox.Action.OK) {
+            that._deleteFeed(sId);
+          }
+        }
+      });
+    },
+    
+    _deleteFeed: function(sId) {
+      var that = this;
+      
+      fetch("/api/RssFeeds(" + sId + ")", {
+        method: "DELETE"
+      })
+      .then(function(response) {
+        if (!response.ok && response.status !== 204) throw new Error("Failed to delete");
+        MessageToast.show("Feed deleted!");
+        that._loadFeeds();
+        
+        // Clear articles if deleted feed was selected
+        that.getView().getModel("state").setProperty("/items", []);
+      })
+      .catch(function(err) {
+        MessageBox.error("Failed to delete feed: " + err.message);
+      });
+    },
+    
     onArticlePress: function(oEvent) {
-      var oContext = oEvent.getSource().getBindingContext("app");
+      var oContext = oEvent.getSource().getBindingContext("state");
       var sLink = oContext.getProperty("link");
       if (sLink) {
         window.open(sLink, "_blank");
@@ -101,13 +188,12 @@ sap.ui.define([
     
     _loadFeed: function(sUrl) {
       var that = this;
-      var oModel = this.getView().getModel("app");
+      var oStateModel = this.getView().getModel("state");
       
-      oModel.setProperty("/loading", true);
-      oModel.setProperty("/selectedFeed", sUrl);
-      oModel.setProperty("/items", []);
+      oStateModel.setProperty("/loading", true);
+      oStateModel.setProperty("/selectedFeed", sUrl);
+      oStateModel.setProperty("/items", []);
       
-      // Fetch via our proxy to avoid CORS
       var sProxyUrl = "/rss/fetch?url=" + encodeURIComponent(sUrl);
       
       fetch(sProxyUrl)
@@ -120,11 +206,8 @@ sap.ui.define([
           var oDoc = oParser.parseFromString(xml, "application/xml");
           
           var aItems = [];
-          
-          // Try RSS 2.0 format
           var oItems = oDoc.querySelectorAll("item");
           if (oItems.length === 0) {
-            // Try Atom format
             oItems = oDoc.querySelectorAll("entry");
           }
           
@@ -134,10 +217,7 @@ sap.ui.define([
             var description = item.querySelector("description, summary, content");
             var pubDate = item.querySelector("pubDate, published, updated");
             
-            // Handle Atom link which uses href attribute
             var sLink = link ? (link.getAttribute("href") || link.textContent) : "";
-            
-            // Strip HTML from description
             var sDesc = description ? description.textContent : "";
             sDesc = sDesc.replace(/<[^>]*>/g, "").substring(0, 300);
             
@@ -149,15 +229,15 @@ sap.ui.define([
             });
           });
           
-          oModel.setProperty("/items", aItems);
-          oModel.setProperty("/loading", false);
+          oStateModel.setProperty("/items", aItems);
+          oStateModel.setProperty("/loading", false);
           
           if (aItems.length === 0) {
             MessageToast.show("No articles found in this feed");
           }
         })
         .catch(function(err) {
-          oModel.setProperty("/loading", false);
+          oStateModel.setProperty("/loading", false);
           MessageBox.error("Failed to load feed: " + err.message);
         });
     },
