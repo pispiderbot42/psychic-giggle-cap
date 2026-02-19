@@ -49,6 +49,14 @@ async function start() {
     });
   });
   
+  // Deploy database schema and initial data before serving
+  try {
+    await cds.deploy('./db').to('sqlite:db.sqlite');
+    console.log('Database deployed successfully');
+  } catch (err) {
+    console.error('Database deploy error:', err.message);
+  }
+  
   // Bootstrap CDS
   await cds.serve('all').in(app);
   
