@@ -26,7 +26,12 @@
       "db": {
         "kind": "sqlite",
         "credentials": {
-          "url": "db.sqlite"
+          "url": ":memory:"
+        },
+        "[production]": {
+          "credentials": {
+            "url": ":memory:"
+          }
         }
       },
       "auth": {
