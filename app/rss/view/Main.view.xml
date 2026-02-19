@@ -69,13 +69,13 @@
                   </VBox>
                 </CustomListItem>
               </List>
-              <footer>
-                <Bar>
-                  <contentMiddle>
-                    <BusyIndicator visible="{app>/loading}" size="Small"/>
-                  </contentMiddle>
-                </Bar>
-              </footer>
+              <infoToolbar>
+                <Toolbar>
+                  <ToolbarSpacer/>
+                  <BusyIndicator visible="{app>/loading}" size="Small"/>
+                  <ToolbarSpacer/>
+                </Toolbar>
+              </infoToolbar>
             </Panel>
           </l:contentAreas>
         </l:Splitter>
