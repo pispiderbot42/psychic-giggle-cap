@@ -2,11 +2,38 @@ const cds = require('@sap/cds');
 const express = require('express');
 const path = require('path');
 
-// Deploy schema to in-memory SQLite before serving
+// Create tables manually after DB connection
 cds.on('served', async () => {
-  const db = await cds.connect.to('db');
-  await cds.deploy('./db').to(db);
-  console.log('Database schema deployed to:', db.options?.credentials?.url || ':memory:');
+  try {
+    const db = await cds.connect.to('db');
+    
+    // Create tables manually
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS HelloService_RssFeeds (
+        ID TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        createdAt TEXT,
+        modifiedAt TEXT
+      )
+    `);
+    
+    // Check if table is empty and insert sample data
+    const count = await db.run(`SELECT COUNT(*) as cnt FROM HelloService_RssFeeds`);
+    if (count[0]?.cnt === 0) {
+      await db.run(`
+        INSERT INTO HelloService_RssFeeds (ID, name, url, createdAt, modifiedAt) VALUES
+        ('${cds.utils.uuid()}', 'SAP Community', 'https://community.sap.com/khhcw47422/rss/board?board.id=technology-blog-sap', datetime('now'), datetime('now')),
+        ('${cds.utils.uuid()}', 'Hacker News', 'https://news.ycombinator.com/rss', datetime('now'), datetime('now')),
+        ('${cds.utils.uuid()}', 'TechCrunch', 'https://techcrunch.com/feed/', datetime('now'), datetime('now'))
+      `);
+      console.log('Sample feeds inserted');
+    }
+    
+    console.log('Database tables ready');
+  } catch (err) {
+    console.error('DB setup error:', err.message);
+  }
 });
 
 // Custom express middleware before CDS bootstrap
