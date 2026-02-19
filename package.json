@@ -26,9 +26,8 @@
       "db": {
         "kind": "sqlite",
         "credentials": {
-          "database": "db.sqlite"
-        },
-        "impl": "@cap-js/sqlite"
+          "url": "db.sqlite"
+        }
       },
       "auth": {
         "kind": "dummy"

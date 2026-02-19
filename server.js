@@ -49,15 +49,19 @@ async function start() {
     });
   });
   
-  // Deploy database schema and initial data before serving
+  // Connect to database and deploy schema
   try {
-    await cds.deploy('./db').to('sqlite:db.sqlite');
-    console.log('Database deployed successfully');
+    const db = await cds.connect.to('db');
+    console.log('Database connected:', db.name);
+    
+    // Deploy schema and initial data
+    await cds.deploy('./db').to(db);
+    console.log('Database schema deployed');
   } catch (err) {
-    console.error('Database deploy error:', err.message);
+    console.error('Database setup error:', err.message);
   }
   
-  // Bootstrap CDS
+  // Bootstrap CDS services
   await cds.serve('all').in(app);
   
   app.listen(PORT, () => {
