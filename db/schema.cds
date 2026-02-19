@@ -7,7 +7,7 @@ entity Messages {
 }
 
 entity RssFeeds {
-  key ID        : UUID;
+  key ID        : UUID @cds.on.insert: $uuid;
   name          : String(100) @mandatory;
   url           : String(500) @mandatory;
   createdAt     : Timestamp @cds.on.insert: $now;
