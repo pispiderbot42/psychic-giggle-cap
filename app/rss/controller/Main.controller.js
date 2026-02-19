@@ -124,7 +124,8 @@ sap.ui.define([
       fetch("/api/RssFeeds", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json;odata.metadata=minimal",
+          "Accept": "application/json"
         },
         body: JSON.stringify({
           name: sName,
@@ -132,7 +133,12 @@ sap.ui.define([
         })
       })
       .then(function(response) {
-        if (!response.ok) throw new Error("Failed to create feed");
+        if (!response.ok) {
+          return response.text().then(function(text) {
+            console.error("Server error:", text);
+            throw new Error(text || "Failed to create feed");
+          });
+        }
         return response.json();
       })
       .then(function() {
@@ -166,7 +172,7 @@ sap.ui.define([
     _deleteFeed: function(sId) {
       var that = this;
       
-      fetch("/api/RssFeeds(" + sId + ")", {
+      fetch("/api/RssFeeds/" + sId, {
         method: "DELETE"
       })
       .then(function(response) {
