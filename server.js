@@ -7,9 +7,9 @@ cds.on('served', async () => {
   try {
     const db = await cds.connect.to('db');
     
-    // Create tables manually
+    // Create tables manually (CDS uses different names for read vs write)
     await db.run(`
-      CREATE TABLE IF NOT EXISTS HelloService_RssFeeds (
+      CREATE TABLE IF NOT EXISTS psychic_giggle_RssFeeds (
         ID TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         url TEXT NOT NULL,
@@ -18,11 +18,17 @@ cds.on('served', async () => {
       )
     `);
     
+    // Create view for service layer
+    await db.run(`
+      CREATE VIEW IF NOT EXISTS HelloService_RssFeeds AS 
+      SELECT * FROM psychic_giggle_RssFeeds
+    `);
+    
     // Check if table is empty and insert sample data
-    const count = await db.run(`SELECT COUNT(*) as cnt FROM HelloService_RssFeeds`);
+    const count = await db.run(`SELECT COUNT(*) as cnt FROM psychic_giggle_RssFeeds`);
     if (count[0]?.cnt === 0) {
       await db.run(`
-        INSERT INTO HelloService_RssFeeds (ID, name, url, createdAt, modifiedAt) VALUES
+        INSERT INTO psychic_giggle_RssFeeds (ID, name, url, createdAt, modifiedAt) VALUES
         ('${cds.utils.uuid()}', 'SAP Community', 'https://community.sap.com/khhcw47422/rss/board?board.id=technology-blog-sap', datetime('now'), datetime('now')),
         ('${cds.utils.uuid()}', 'Hacker News', 'https://news.ycombinator.com/rss', datetime('now'), datetime('now')),
         ('${cds.utils.uuid()}', 'TechCrunch', 'https://techcrunch.com/feed/', datetime('now'), datetime('now'))
