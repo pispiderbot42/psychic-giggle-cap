@@ -60,6 +60,7 @@
                 items="{app>/items}"
                 growing="true"
                 growingThreshold="20"
+                busy="{app>/loading}"
                 noDataText="Select a feed to load articles">
                 <CustomListItem type="Active" press="onArticlePress">
                   <VBox class="sapUiSmallMargin">
@@ -69,13 +70,6 @@
                   </VBox>
                 </CustomListItem>
               </List>
-              <infoToolbar>
-                <Toolbar>
-                  <ToolbarSpacer/>
-                  <BusyIndicator visible="{app>/loading}" size="Small"/>
-                  <ToolbarSpacer/>
-                </Toolbar>
-              </infoToolbar>
             </Panel>
           </l:contentAreas>
         </l:Splitter>
