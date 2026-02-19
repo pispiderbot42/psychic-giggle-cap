@@ -18,7 +18,7 @@
     "@sap/cds-dk": "^7"
   },
   "scripts": {
-    "start": "cds deploy --to sqlite::memory: && cds-serve",
+    "start": "cds-serve",
     "build": "cds build --production"
   },
   "cds": {

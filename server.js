@@ -2,7 +2,12 @@ const cds = require('@sap/cds');
 const express = require('express');
 const path = require('path');
 
-const PORT = process.env.PORT || 4004;
+// Deploy schema to in-memory SQLite before serving
+cds.on('served', async () => {
+  const db = await cds.connect.to('db');
+  await cds.deploy('./db').to(db);
+  console.log('Database schema deployed to:', db.options?.credentials?.url || ':memory:');
+});
 
 // Custom express middleware before CDS bootstrap
 cds.on('bootstrap', (app) => {
@@ -47,5 +52,5 @@ cds.on('bootstrap', (app) => {
   });
 });
 
-// Start CDS server (handles DB connection automatically)
+// Start CDS server
 module.exports = cds.server;
